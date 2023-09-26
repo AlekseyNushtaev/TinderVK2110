@@ -2,7 +2,6 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from models_db import create_table, User, Partner, User_partner
 
-
 class Database():
 
     def __init__(self, login_db: str, pass_db: str, name_db: str):
@@ -80,4 +79,3 @@ class Database():
     def all_seen(self, vk_id) -> bool:
         return self.session.query(User_partner).filter(User_partner.user_id == vk_id,
                                                        User_partner.seen == 0).count() == 0
-
