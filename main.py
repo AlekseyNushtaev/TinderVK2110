@@ -1,53 +1,53 @@
-import vk_api
-from vk_api.longpoll import VkLongPoll, VkEventType
+import configparser
 from database import Database
 from vk_find_data import VkFindData
+from vk_chat_bot import VkChatBot
 
-token = "vk1.a.sy-nvNdG8zquv3VFsGb1c3iFKAsej_S0euQ4EtVHhe0OMZUJwlkSe2Ip8PzXEqhMrMr71uu4NEFmREbAb2ttyTil0pMEibPW7bvEX63qCZJIF43isSlotABVTJEJbOalYQwKWyTck_NKGjPjSq8CZqC3hKXXZE3u2ZGAjz5hteVqlBR3cLScB48GMFXrjrf_fSlfD5GmIfo3zGE267XK5A"
-token_owner = ""
+config = configparser.ConfigParser()
+config.read("config.ini")
 
-vk = vk_api.VkApi(token=token)
-longpoll = VkLongPoll(vk)
-vk_find = VkFindData(token=token_owner)
-db = Database(db_login="", db_pass="", db_name="")
+vk_chat = VkChatBot(config["Vk_group"]["token"])
+vk_find = VkFindData(config["Vk_user"]["token"])
+db = Database(config["Db"]["login"], config["Db"]["password"], config["Db"]["name"])
 
-def write_msg(user_id, p_id, first_name, last_name, link, photo_id):
-    params = {
-        "user_id": user_id,
-        "message": f"{first_name} {last_name}\n{link}",
-        "attachment": f"photo{p_id}_{photo_id[0]},photo{p_id}_{photo_id[1]},photo{p_id}_{photo_id[2]}",
-        "random_id": 0
-    }
-    vk.method("messages.send", params)
-# def send_partner:
-            #photo_ids = search_photo(take_partner)
-            #write_msg(event.user_id, 1, "Павел", "Дуров", "https://vk.com/durov", photo_ids)
-            #add_photo_links(photo_ids)
-for event in longpoll.listen():
-    if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+for event in vk_chat.longpoll.listen():
+
+    if event.type == vk_chat.vkevent and event.to_me:
         request = event.text.lower()
 
-        if request == "start" and db.user_not_in_db(event.user_id):
-            user_dict = vk_find.get_user_info(event.user_id)
-            partners_list = vk_find.search_partners(user_dict['age'], user_dict['sex'], user_dict['city_id'])
-            db.add_user_partners(event.user_id, user_dict, partners_list)
-            # send_partner
-        #elif request == "start" and user_id in BD:
-            #write_msg('Вам уже нашли партнеров, наберите команду next')
-        elif request == "next":
-            pass
-            #change_seen
-            # if count(seen=0)>0:
-            #send_partner
-            # else:
-                #for i in list(seen=1):
-                      #change_seen
-                #send_partner
+        if request == "find":
+
+            if not db.user_in_db(event.user_id):
+                user_dict = vk_find.get_user_info(event.user_id)
+                partners_list = vk_find.search_partners(user_dict['age'], user_dict['sex'], user_dict['city_id'])
+                db.add_user_partners(event.user_id, user_dict, partners_list)
+            else:
+                p_dict = db.take_partner(event.user_id)
+                db.change_seen(event.user_id, p_dict['id'])
+
+            if db.all_seen(event.user_id):
+                db.delete_seen(event.user_id)
+
+            p_dict = db.take_partner(event.user_id)
+            photo_ids = vk_find.search_photos(p_dict['id'])
+            db.add_photo_id(p_dict['id'], photo_ids)
+            vk_chat.write_partner(event.user_id, p_dict['id'], p_dict['first_name'], p_dict['last_name'],
+                                  p_dict['link'], photo_ids)
+
         elif request == "like":
-            pass
-            #change_like
+            if db.user_in_db(event.user_id):
+                if db.change_like(event.user_id):
+                    vk_chat.write_msg(event.user_id, "Выбранный человек уже в списке, выполните команду find или list", [])
+            else:
+                vk_chat.write_msg(event.user_id, "Для начала выполните команду find - выполните поиск человека", [])
+
         elif request == "list":
-            pass
-            # write_msg('Список избранных')
-            # for person in get_like_list:
-                 #write_msg
+            if db.user_in_db(event.user_id):
+                vk_chat.write_msg(event.user_id, "Список избранных:\n", db.get_like_list(event.user_id))
+            else:
+                vk_chat.write_msg(event.user_id, "Для начала выполните команду find - выполните поиск человека и добавьте "
+                                                 "его в список избранных командой like", [])
+
+        else:
+            vk_chat.write_msg(event.user_id, "Список доступных комманд:\n1. find - поиск человека.\n"
+                                             "2. like - добавить в список избранных.\n3. list - вывести список избранных.", [])
