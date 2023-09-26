@@ -5,6 +5,7 @@ Base = declarative_base()
 
 
 class User(Base):
+    '''Класс для создания таблицы User в базе данных'''
     __tablename__ = "user"
 
     vk_id = sq.Column(sq.Integer, primary_key=True)
@@ -16,6 +17,7 @@ class User(Base):
 
 
 class Partner(Base):
+    '''Класс для создания таблицы Partner в базе данных'''
     __tablename__ = "partner"
 
     vk_id = sq.Column(sq.Integer, primary_key=True)
@@ -26,6 +28,7 @@ class Partner(Base):
 
 
 class User_partner(Base):
+    '''Класс для создания таблицы User_partner в базе данных для создания связи многоие (User) ко многим (Partner)'''
     __tablename__ = "user_partner"
 
     id = sq.Column(sq.Integer, primary_key=True)

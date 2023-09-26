@@ -3,10 +3,13 @@ from datetime import datetime
 
 
 class VkFindData:
+    '''Класс для получения информации из БД VK'''
     def __init__(self, token) -> None:
+        '''Метод для инициализации класса VkFindData'''
         self.token = token
     
     def get_user_info(self, user_id: int=None) -> dict:
+        '''Метод для получения информации по юзеру, написавшему сообщение в чат'''
         URL = 'https://api.vk.com/method/users.get'
 
         params = {
@@ -36,6 +39,7 @@ class VkFindData:
                 'city_id': city_id}
 
     def search_partners(self, age: int, sex: int, city_id: int) -> list[dict]:
+        '''Метод для поиска возможных партнеров (и получения информации о них) по id юзера '''
         partner_sex = 1 if sex == 2 else 2
 
         URL = 'https://api.vk.com/method/users.search'
@@ -89,6 +93,7 @@ class VkFindData:
         return partners_list
 
     def search_photos(self, partner_id: int) -> list:
+        '''Метод для получения id топ-3 (1, 2 в зависимости от кол-ва фото в профиле) фото по id страницы'''
         URL = 'https://api.vk.com/method/photos.get'
 
         params = {
@@ -110,6 +115,7 @@ class VkFindData:
         return [like_id[1] for like_id in sorted(likes_id, reverse=True)[:3]]
 
     def bdate_to_age(self, bdate: str) -> int:
+        '''Вспомогательный метод для получения возраста (кол-во полных лет) из даты рождения'''
         today = datetime.now()
         try:
             birth_date = datetime.strptime(bdate, '%d.%m.%Y')

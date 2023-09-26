@@ -3,8 +3,10 @@ from sqlalchemy.orm import sessionmaker
 from models_db import create_table, User, Partner, User_partner
 
 class Database():
+    '''Класс для взаимодействия с базой данных'''
 
     def __init__(self, login_db: str, pass_db: str, name_db: str):
+        '''Метод для инициализации класса Database (создание подключение к БД, открытие сессии)'''
         DSN = f'postgresql://{login_db}:{pass_db}@localhost:5432/{name_db}'
         self.engine = sqlalchemy.create_engine(DSN)
         create_table(engine=self.engine)
