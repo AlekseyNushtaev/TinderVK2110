@@ -38,6 +38,10 @@ for event in vk_chat.longpoll.listen():
             if db.user_in_db(event.user_id):
                 if db.change_like(event.user_id):
                     vk_chat.write_msg(event.user_id, "Выбранный человек уже в списке, выполните команду find или list", [])
+                else:
+                    p_dict = db.take_partner(event.user_id)
+                    vk_chat.write_msg(event.user_id, f"{p_dict['first_name']} {p_dict['last_name']}"
+                                                     f" добавлен(а) в список избранных", [])
             else:
                 vk_chat.write_msg(event.user_id, "Для начала выполните команду find - выполните поиск человека", [])
 
