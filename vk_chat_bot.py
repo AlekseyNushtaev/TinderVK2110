@@ -1,5 +1,6 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.keyboard import VkKeyboard
 
 class VkChatBot:
     def __init__(self, token: str) -> None:
@@ -18,7 +19,8 @@ class VkChatBot:
             "random_id": 0
         }
         self.vk.method("messages.send", params)
-    def write_msg(self, user_id: int, txt, like_list: list) ->None:
+
+    def write_msg(self, user_id: int, txt, like_list: list) -> None:
         text = txt
         for index, p in enumerate(like_list):
             text += f"{index + 1}. {p['first_name']} {p['last_name']}\n{p['link']}\n"
@@ -28,3 +30,17 @@ class VkChatBot:
             "random_id": 0
         }
         self.vk.method("messages.send", params)
+
+    def send_keyboard(self, user_id, message) -> None:
+        keyboard = VkKeyboard()
+        keyboard.add_button('find')
+        keyboard.add_button('like')
+        keyboard.add_button('list')
+
+        params = {
+            "user_id": user_id,
+            "message": message,
+            "random_id": 0,
+            "keyboard": keyboard.get_keyboard()
+        }
+        self.vk.method('messages.send', params)
